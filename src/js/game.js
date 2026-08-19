@@ -13,6 +13,9 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
 const GHOST_SPEED = 0.1;    // 1/10 celda/frame
 
+const GHOST_RELEASE_INTERVAL = 90; // frames ≈ 1.5 s a 60 fps
+const GHOST_RELEASE_ORDER = [ 'hunter', 'ambusher', 'flanker', 'shy' ];
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
@@ -28,6 +31,8 @@ function createGame() {
     score: 0,
     lives: 3,
     dotsRemaining: dots,
+    frame: 0,
+    releasedCount: 0,
     grid,
     pacman: {
       x: PACMAN_START.x,
@@ -42,6 +47,7 @@ function createGame() {
       dir: 'up',
       speed: GHOST_SPEED,
       kind: g.kind,
+      released: false,
     } ) ),
   };
 }
@@ -110,6 +116,22 @@ function movePacman( game ) {
   wrapTunnel( p, width );
 }
 
+// Objetivo por rol para la IA de persecución. Devuelve una celda (x,y).
+function ghostTarget( game, g ) {
+  const p = game.pacman;
+  const px = Math.round( p.x );
+  const py = Math.round( p.y );
+  const d = DIRS[ p.dir ] || { x: 0, y: 0 };
+  switch ( g.kind ) {
+    case 'ambusher': // se adelanta a donde va Pac-Man
+      return { x: px + d.x * 4, y: py + d.y * 4 };
+    case 'flanker': // ataca por el flanco (4 adelante, 2 a un lado)
+      return { x: px + d.x * 4 - d.y * 2, y: py + d.y * 4 + d.x * 2 };
+    default: // hunter: directo a Pac-Man
+      return { x: px, y: py };
+  }
+}
+
 function decideGhost( game, g ) {
   const grid = game.grid;
   const p = game.pacman;
@@ -120,25 +142,39 @@ function decideGhost( game, g ) {
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
-  if ( g.kind === 'hunter' ) {
-    const px = Math.round( p.x );
-    const py = Math.round( p.y );
+  if ( g.kind === 'shy' ) {
+    // timido: se aleja de Pac-Man (maximiza la distancia).
     let best = choices[ 0 ];
-    let bestDist = Infinity;
+    let bestDist = -Infinity;
     for ( const dir of choices ) {
       const d = DIRS[ dir ];
       const nx = g.x + d.x;
       const ny = g.y + d.y;
-      const dist = Math.abs( nx - px ) + Math.abs( ny - py );
-      if ( dist < bestDist ) {
+      const dist = Math.abs( nx - p.x ) + Math.abs( ny - p.y );
+      if ( dist > bestDist ) {
         bestDist = dist;
         best = dir;
       }
     }
     g.dir = best;
-  } else {
-    g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
+    return;
   }
+
+  // Persecucion (hunter/ambusher/flanker): minimiza la distancia al objetivo.
+  const target = ghostTarget( game, g );
+  let best = choices[ 0 ];
+  let bestDist = Infinity;
+  for ( const dir of choices ) {
+    const d = DIRS[ dir ];
+    const nx = g.x + d.x;
+    const ny = g.y + d.y;
+    const dist = Math.abs( nx - target.x ) + Math.abs( ny - target.y );
+    if ( dist < bestDist ) {
+      bestDist = dist;
+      best = dir;
+    }
+  }
+  g.dir = best;
 }
 
 function moveGhost( game, g ) {
@@ -168,7 +204,10 @@ function resetPositions( game ) {
     g.x = GHOST_STARTS[ i ].x;
     g.y = GHOST_STARTS[ i ].y;
     g.dir = 'up';
+    g.released = false;
   } );
+  game.frame = 0;
+  game.releasedCount = 0;
 }
 
 function collides( a, b ) {
@@ -176,10 +215,25 @@ function collides( a, b ) {
 }
 
 function update( game ) {
+  // Liberacion escalonada: un fantasma cada GHOST_RELEASE_INTERVAL frames.
+  if (
+    game.releasedCount < GHOST_RELEASE_ORDER.length &&
+    game.frame % GHOST_RELEASE_INTERVAL === 0
+  ) {
+    const kind = GHOST_RELEASE_ORDER[ game.releasedCount ];
+    const g = game.ghosts.find( ( ghost ) => ghost.kind === kind );
+    if ( g ) g.released = true;
+    game.releasedCount++;
+  }
+  game.frame++;
+
   movePacman( game );
-  game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
+  game.ghosts.forEach( ( g ) => {
+    if ( g.released ) moveGhost( game, g );
+  } );
 
   for ( const g of game.ghosts ) {
+    if ( !g.released ) continue;
     if ( collides( game.pacman, g ) ) {
       game.lives--;
       if ( game.lives <= 0 ) {
