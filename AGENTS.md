@@ -4,7 +4,7 @@ Pac-Man clone in vanilla JS/HTML/CSS. No build system, no package.json, no tests
 
 ## Run
 
-Open `src/index.html` directly in a browser (no server, no build step needed).
+Open `src/index.html` directly in a browser (no server, no build step needed) .
 
 ## Architecture
 
