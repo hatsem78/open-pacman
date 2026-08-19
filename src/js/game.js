@@ -201,6 +201,10 @@ function moveGhost( game, g ) {
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
     g.y = Math.round( g.y );
+    // Alcanzo el punto de salida: pasa a usar su IA normal.
+    if ( g.leaving && g.x === GHOST_EXIT_POINT.x && g.y === GHOST_EXIT_POINT.y ) {
+      g.leaving = false;
+    }
     decideGhost( game, g );
     if ( !canMove( grid, g.x, g.y, g.dir, 'ghost' ) ) return;
   }
