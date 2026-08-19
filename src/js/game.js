@@ -15,6 +15,7 @@ const GHOST_SPEED = 0.1;    // 1/10 celda/frame
 
 const GHOST_RELEASE_INTERVAL = 90; // frames ≈ 1.5 s a 60 fps
 const GHOST_RELEASE_ORDER = [ 'hunter', 'ambusher', 'flanker', 'shy' ];
+const GHOST_EXIT_POINT = { x: 13, y: 11 }; // celda justo encima de la puerta
 
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
