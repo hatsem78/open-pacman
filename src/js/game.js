@@ -263,6 +263,12 @@ function resetPositions( game ) {
   } );
   game.frame = 0;
   game.releasedCount = 0;
+  game.frightTimer = 0;
+  game.eatenStreak = 0;
+  game.ghosts.forEach( ( g ) => {
+    g.frightened = false;
+    g.speed = GHOST_SPEED;
+  } );
 }
 
 // Un fantasma comido vuelve a la pen y re-sale por la puerta (SPEC 02).
@@ -291,6 +297,18 @@ function update( game ) {
     game.releasedCount++;
   }
   game.frame++;
+
+  // Temporizador del modo asustado.
+  if ( game.frightTimer > 0 ) {
+    game.frightTimer--;
+    if ( game.frightTimer === 0 ) {
+      game.eatenStreak = 0;
+      game.ghosts.forEach( ( g ) => {
+        g.frightened = false;
+        g.speed = GHOST_SPEED;
+      } );
+    }
+  }
 
   movePacman( game );
   game.ghosts.forEach( ( g ) => {
