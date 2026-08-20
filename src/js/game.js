@@ -97,6 +97,19 @@ function wrapTunnel( a, width ) {
   }
 }
 
+function isPowerPellet( x, y ) {
+  return POWER_PELLETS.some( ( pp ) => pp.x === x && pp.y === y );
+}
+
+function activateFrightened( game ) {
+  game.frightTimer = FRIGHTENED_DURATION;
+  game.eatenStreak = 0;
+  game.ghosts.forEach( ( g ) => {
+    g.frightened = true;
+    g.speed = FRIGHTENED_SPEED;
+  } );
+}
+
 function movePacman( game ) {
   const p = game.pacman;
   const grid = game.grid;
@@ -111,11 +124,16 @@ function movePacman( game ) {
       p.dir = p.nextDir;
       p.nextDir = null;
     }
-    // Comer dot.
+    // Comer dot o power pellet.
     if ( grid[ p.y ][ p.x ] === 2 ) {
       grid[ p.y ][ p.x ] = 0;
-      game.score += 10;
       game.dotsRemaining--;
+      if ( isPowerPellet( p.x, p.y ) ) {
+        game.score += 50;
+        activateFrightened( game );
+      } else {
+        game.score += 10;
+      }
     }
     // Si no puede seguir, se detiene en la celda.
     if ( !canMove( grid, p.x, p.y, p.dir, 'pacman' ) ) return;
