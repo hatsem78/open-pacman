@@ -17,6 +17,12 @@ const GHOST_RELEASE_INTERVAL = 90; // frames ≈ 1.5 s a 60 fps
 const GHOST_RELEASE_ORDER = [ 'hunter', 'ambusher', 'flanker', 'shy' ];
 const GHOST_EXIT_POINT = { x: 13, y: 11 }; // celda justo encima de la puerta
 
+const POWER_PELLETS = [ { x: 1, y: 3 }, { x: 26, y: 3 }, { x: 1, y: 23 }, { x: 26, y: 23 } ];
+const FRIGHTENED_DURATION = 360; // frames ≈ 6 s a 60 fps
+const FRIGHTENED_FLASH = 90;     // frames finales de parpadeo
+const FRIGHTENED_SPEED = 0.05;   // mitad de GHOST_SPEED
+const GHOST_EAT_SCORES = [ 200, 400, 800, 1600 ];
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
@@ -34,6 +40,8 @@ function createGame() {
     dotsRemaining: dots,
     frame: 0,
     releasedCount: 0,
+    frightTimer: 0,
+    eatenStreak: 0,
     grid,
     pacman: {
       x: PACMAN_START.x,
@@ -50,6 +58,7 @@ function createGame() {
       kind: g.kind,
       released: false,
       leaving: true,
+      frightened: false,
     } ) ),
   };
 }
