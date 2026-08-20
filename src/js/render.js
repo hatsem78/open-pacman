@@ -164,7 +164,6 @@ function draw( ctx, game, frame ) {
   drawDots( ctx, grid );
   drawPacman( ctx, game.pacman, frame );
   game.ghosts.forEach( ( g ) => {
-    if ( !g.released ) return;
     drawGhost( ctx, g, GHOST_COLORS_BY_KIND[ g.kind ] || '#ff0000' );
   } );
   drawHUD( ctx, game, W );
