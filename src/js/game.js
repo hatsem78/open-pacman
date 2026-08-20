@@ -265,6 +265,16 @@ function resetPositions( game ) {
   game.releasedCount = 0;
 }
 
+// Un fantasma comido vuelve a la pen y re-sale por la puerta (SPEC 02).
+function eatGhost( game, g ) {
+  const start = GHOST_STARTS.find( ( s ) => s.kind === g.kind ) || GHOST_STARTS[ 0 ];
+  g.x = start.x;
+  g.y = start.y;
+  g.dir = 'up';
+  g.leaving = true;
+  g.released = true;
+}
+
 function collides( a, b ) {
   return Math.abs( a.x - b.x ) < 0.5 && Math.abs( a.y - b.y ) < 0.5;
 }
@@ -290,6 +300,13 @@ function update( game ) {
   for ( const g of game.ghosts ) {
     if ( !g.released ) continue;
     if ( collides( game.pacman, g ) ) {
+      if ( g.frightened ) {
+        // Comer fantasma: doblaje por racha del mismo pellet.
+        game.score += GHOST_EAT_SCORES[ Math.min( game.eatenStreak, GHOST_EAT_SCORES.length - 1 ) ];
+        game.eatenStreak++;
+        eatGhost( game, g );
+        break;
+      }
       game.lives--;
       if ( game.lives <= 0 ) {
         game.state = 'lost';
