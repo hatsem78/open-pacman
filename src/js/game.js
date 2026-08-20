@@ -176,6 +176,12 @@ function decideGhost( game, g ) {
     return;
   }
 
+  if ( g.frightened ) {
+    // Asustado: direccion aleatoria en cada cruce (clasico).
+    g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
+    return;
+  }
+
   if ( g.kind === 'shy' ) {
     // timido: se aleja de Pac-Man (maximiza la distancia).
     g.dir = flee( grid, g, game.pacman, choices );
