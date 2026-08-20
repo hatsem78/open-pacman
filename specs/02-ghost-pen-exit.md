@@ -1,6 +1,6 @@
 # SPEC 02 — Salida de los fantasmas desde la pen
 
-> **Status:** Draft
+> **Status:** Approved
 > **Depends on:** SPEC 01
 > **Date:** 2026-08-19
 > **Objective:** Hacer que cada fantasma, al ser liberado, salga de la pen por la puerta hasta un punto fijo y luego active su IA normal, sin poder volver a entrar.
