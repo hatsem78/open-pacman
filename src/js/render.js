@@ -72,8 +72,10 @@ function drawDots( ctx, grid ) {
     for ( let x = 0; x < grid[ 0 ].length; x++ ) {
       if ( grid[ y ][ x ] !== 2 ) continue;
       const { cx, cy } = cellCenter( x, y );
+      // Los power pellets (esquinas) se dibujan mas grandes.
+      const big = POWER_PELLETS.some( ( pp ) => pp.x === x && pp.y === y );
       ctx.beginPath();
-      ctx.arc( cx, cy, 2.5, 0, Math.PI * 2 );
+      ctx.arc( cx, cy, big ? 5 : 2.5, 0, Math.PI * 2 );
       ctx.fill();
     }
   }
@@ -164,7 +166,14 @@ function draw( ctx, game, frame ) {
   drawDots( ctx, grid );
   drawPacman( ctx, game.pacman, frame );
   game.ghosts.forEach( ( g ) => {
-    drawGhost( ctx, g, GHOST_COLORS_BY_KIND[ g.kind ] || '#ff0000' );
+    let color = GHOST_COLORS_BY_KIND[ g.kind ] || '#ff0000';
+    if ( g.frightened ) {
+      // Asustado: azul; parpadea blanco/azul en los ultimos frames.
+      const flashing =
+        game.frightTimer <= FRIGHTENED_FLASH && Math.floor( game.frightTimer / 10 ) % 2 === 0;
+      color = flashing ? '#ffffff' : '#2121ff';
+    }
+    drawGhost( ctx, g, color );
   } );
   drawHUD( ctx, game, W );
 }

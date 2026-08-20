@@ -341,3 +341,5 @@ function update( game ) {
 window.createGame = createGame;
 window.update = update;
 window.DIRS = DIRS;
+window.POWER_PELLETS = POWER_PELLETS;
+window.FRIGHTENED_FLASH = FRIGHTENED_FLASH;
